@@ -117,17 +117,14 @@ class GaussianMLPTaskEmbeddingPolicy(TaskEmbeddingPolicy):
         self._initialize()
 
     def _initialize(self):
+        """Initialize policy."""
         obs_input = tf.compat.v1.placeholder(tf.float32,
                                              shape=(None, None, self._obs_dim))
-        task_input = tf.compat.v1.placeholder(tf.float32,
-                                              shape=(None, None,
-                                                     self._encoder.input_dim))
         latent_input = tf.compat.v1.placeholder(
             tf.float32, shape=(None, None, self._encoder.output_dim))
 
         # Encoder should be outside policy scope
         with tf.compat.v1.variable_scope('concat_obs_task'):
-            self._encoder.build(task_input, name='dist_info_sym')
             latent_var = self._encoder.distribution.sample()
 
         with tf.compat.v1.variable_scope(self.name) as vs:
@@ -155,7 +152,7 @@ class GaussianMLPTaskEmbeddingPolicy(TaskEmbeddingPolicy):
             dist_given_task.sample(), dist_given_task.loc,
             dist_given_task.stddev()
         ],
-                        feed_list=[obs_input, task_input])
+                        feed_list=[obs_input, self._encoder.input])
 
     @property
     def distribution(self):
